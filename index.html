@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>مشخصات IP با طراحی زیبا</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(to right, #2c3e50, #3498db); /* پس‌زمینه گرادینتی */
+      color: #fff;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transition: background 0.3s ease-in-out;
+    }
+
+    .container {
+      background: rgba(0, 0, 0, 0.8); /* پنل اصلی گرافیکی */
+      border-radius: 15px;
+      padding: 40px;
+      width: 80%;
+      max-width: 800px;
+      text-align: center;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+    }
+
+    h1 {
+      margin-bottom: 20px;
+      font-size: 2.5rem;
+      font-weight: bold;
+    }
+
+    .info {
+      font-size: 18px;
+      margin: 10px 0;
+    }
+
+    .ip-details {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 20px;
+      padding: 15px;
+      background: #34495e;
+      border-radius: 10px;
+    }
+
+    .ip-details div {
+      margin: 0 10px;
+    }
+
+    .btn {
+      background-color: #3498db;
+      color: #fff;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 18px;
+      margin-top: 30px;
+      transition: background-color 0.3s ease;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0% {
+        transform: scale(1);
+      }
+      50% {
+        transform: scale(1.1);
+      }
+      100% {
+        transform: scale(1);
+      }
+    }
+
+    .btn:hover {
+      background-color: #2980b9;
+    }
+
+    #ip-input {
+      padding: 12px;
+      border-radius: 5px;
+      margin: 15px 0;
+      font-size: 18px;
+      width: 60%;
+      background-color: #34495e;
+      color: #fff;
+      border: 1px solid #7f8c8d;
+    }
+
+    .error {
+      color: #e74c3c;
+      font-size: 18px;
+      margin-top: 20px;
+    }
+
+    .extra-info {
+      font-size: 18px;
+      background-color: #2c3e50;
+      border-radius: 8px;
+      padding: 15px;
+      margin-top: 20px;
+    }
+
+    .emoji {
+      font-size: 1.5rem;
+      margin-right: 10px;
+    }
+
+    #country-flag {
+      width: 50px; /* کاهش اندازه پرچم */
+      height: auto;
+      margin-top: 10px;
+    }
+
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>مشخصات IP خود را وارد کنید</h1>
+    <input type="text" id="ip-input" placeholder="آدرس IP را وارد کنید" />
+    <button class="btn" onclick="fetchIPInfo()">دریافت اطلاعات</button>
+    <p class="info" id="info-text">لطفاً یک آدرس IP وارد کرده و "دریافت اطلاعات" را بزنید.</p>
+    
+    <div class="ip-details">
+      <div><strong>آدرس IP:</strong> <span id="ip-address">---</span></div>
+      <div><strong>کشور:</strong> <span id="country-name">---</span></div>
+      <div><strong>شهر:</strong> <span id="city-name">---</span></div>
+    </div>
+
+    <div class="extra-info" id="extra-info">
+      <!-- اطلاعات اضافی در اینجا نمایش داده می‌شود -->
+    </div>
+
+    <p class="info" id="current-time">---</p>
+    <img id="country-flag" class="flag" src="" alt="پرچم کشور" />
+    <p class="error" id="error-message"></p>
+  </div>
+
+  <script>
+    async function fetchIPInfo() {
+      const ipAddress = document.getElementById('ip-input').value;
+      const errorMessage = document.getElementById('error-message');
+      const infoText = document.getElementById('info-text');
+      const extraInfo = document.getElementById('extra-info');
+
+      // پاک کردن داده‌های قبلی
+      errorMessage.textContent = '';
+      infoText.textContent = 'در حال دریافت اطلاعات...';
+      extraInfo.innerHTML = '';
+
+      if (!ipAddress) {
+        errorMessage.textContent = 'لطفاً یک آدرس IP معتبر وارد کنید.';
+        return;
+      }
+
+      const apiUrl = `http://ip-api.com/json/${ipAddress}`;
+
+      try {
+        const response = await fetch(apiUrl);
+        const data = await response.json();
+
+        // بررسی خطا در پاسخ
+        if (data.status === 'fail') {
+          errorMessage.textContent = `خطا: ${data.message}`;
+          return;
+        }
+
+        // بروزرسانی اطلاعات روی صفحه
+        document.getElementById('ip-address').textContent = data.query;
+        document.getElementById('country-name').textContent = `${data.country} ${getCountryEmoji(data.countryCode)}`;
+        document.getElementById('city-name').textContent = data.city;
+        document.getElementById('country-flag').src = `https://flagcdn.com/w320/${data.countryCode.toLowerCase()}.png`; // تغییر URL
+        document.getElementById('current-time').textContent = `زمان کنونی: ${new Date().toLocaleString()}`;
+
+        // نمایش اطلاعات اضافی
+        extraInfo.innerHTML = ` 
+          <strong>منطقه:</strong> ${data.regionName} <br>
+          <strong>کد پستی:</strong> ${data.zip} <br>
+          <strong>عرض جغرافیایی:</strong> ${data.lat} <br>
+          <strong>طول جغرافیایی:</strong> ${data.lon} <br>
+          <strong>ISP:</strong> ${data.isp} <br>
+          <strong>سازمان:</strong> ${data.org} <br>
+          <strong>AS:</strong> ${data.as}
+        `;
+
+        infoText.textContent = 'اطلاعات با موفقیت دریافت شد!';
+      } catch (error) {
+        errorMessage.textContent = 'دریافت اطلاعات با خطا مواجه شد. لطفاً دوباره تلاش کنید.';
+      }
+    }
+
+    // تابع برای دریافت ایموجی پرچم کشور براساس کد کشور
+    function getCountryEmoji(countryCode) {
+      const countryEmojis = {
+        US: '🇺🇸',
+        DE: '🇩🇪',
+        GB: '🇬🇧',
+        FR: '🇫🇷',
+        IN: '🇮🇳',
+        CA: '🇨🇦',
+        JP: '🇯🇵',
+        IT: '🇮🇹',
+        RU: '🇷🇺',
+        CN: '🇨🇳',
+        BR: '🇧🇷'
+      };
+      return countryEmojis[countryCode] || '🌍'; // پیش‌فرض: 🌍
+    }
+  </script>
+
+</body>
+</html>
